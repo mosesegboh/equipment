@@ -90,22 +90,22 @@ class EquimentAvailabilityHelperAssessment extends EquimentAvailabilityHelper
      * @return array Key/value array with as indices the equipment id's and as values the shortages
      * @throws Exception
      */
-    public function getShortages(\DateTime $start, \DateTime $end) : array {
+    public function getShortages(\DateTime $start, \DateTime $end) : array
+    {
         $shortages = [];
         $equipments = $this->equipmentRepository->findAllEquipments();
 
         foreach ($equipments as $equipment) {
-            $maxQuantity = 0;
+            $totalPlannedQuantity = 0;
 
             $planningEntries = $this->planningRepository
-                ->findPlanningsByEquipmentIdAndTimeframe($equipment['id'],
-                    $start, $end);
+                ->findPlanningsByEquipmentIdAndTimeframe($equipment['id'], $start, $end);
 
             foreach ($planningEntries as $planning) {
-                $maxQuantity = max($maxQuantity, $planning['quantity']);
+                $totalPlannedQuantity += $planning['quantity'];
             }
 
-            $shortage = $equipment['stock'] - $maxQuantity;
+            $shortage = $equipment['stock'] - $totalPlannedQuantity;
 
             if ($shortage < 0) {
                 $shortages[$equipment['id']] = $shortage;
@@ -114,5 +114,6 @@ class EquimentAvailabilityHelperAssessment extends EquimentAvailabilityHelper
 
         return $shortages;
     }
+
 
 }

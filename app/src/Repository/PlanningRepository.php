@@ -79,20 +79,15 @@ class PlanningRepository
        \DateTime $start,
        \DateTime $end): array
     {
-        $stmt = $this->connection
-        ->prepare('SELECT * 
-                    FROM planning 
-                    WHERE equipment = :equipmentId 
-                    AND start >= :start AND end <= :end');
-        $stmt->bindValue(':equipmentId',
-            $equipmentId,
-            \PDO::PARAM_INT);
-        $stmt->bindValue(':start',
-            $start->format('Y-m-d H:i:s'),
-            \PDO::PARAM_STR);
-        $stmt->bindValue(':end',
-            $end->format('Y-m-d H:i:s'),
-            \PDO::PARAM_STR);
+        $stmt = $this->connection->prepare(
+            'SELECT * FROM planning WHERE equipment = :equipmentId 
+                        AND ((start <= :start AND end >= :end) 
+                        OR (start >= :start AND start <= :end) 
+                        OR (end >= :start AND end <= :end))'
+        );
+        $stmt->bindValue(':equipmentId', $equipmentId, \PDO::PARAM_INT);
+        $stmt->bindValue(':start', $start->format('Y-m-d H:i:s'), \PDO::PARAM_STR);
+        $stmt->bindValue(':end', $end->format('Y-m-d H:i:s'), \PDO::PARAM_STR);
         $stmt->execute();
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
